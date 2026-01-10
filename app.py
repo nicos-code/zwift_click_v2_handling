@@ -86,8 +86,8 @@ class ClickBLE:
         # async with BleakScanner(
         #     lambda dev, ad_data: self.logger.info(f"Device: {dev}, Advertisement Data: {ad_data}"),
         # ) as scanner:
-        self.logger.info('Scanning for Click... (10 second timeout)')
-        dev = await BleakScanner.find_device_by_name(name="Zwift Click")
+        self.logger.info('Scanning for Click... (5 min timeout)')
+        dev = await BleakScanner.find_device_by_name(timeout=300, name="Zwift Click")
         if dev:
             self.mac = dev.address
             self.logger.info(f"Found Click device with MAC \"{self.mac}\"")
@@ -143,17 +143,23 @@ class ClickBLE:
                 self.button_down_pressed = data_dict['2'] == 0
                 self.button_up_pressed = data_dict['1'] == 0
                 if self.button_up_pressed != self.last_button_up_pressed:
-                    self.logger.info(f"Plus button {'PRESSED' if self.button_up_pressed else 'RELEASED'}")
+                    log_msg = f"Plus button {'PRESSED' if self.button_up_pressed else 'RELEASED'}"
                     # send plus key when button is released
                     try:
-                        if not self.button_up_pressed: keyboard.press_and_release('num plus')
+                        if not self.button_up_pressed:
+                            log_msg += f"; sending '{PLUS_KEY}'"
+                            keyboard.press_and_release(PLUS_KEY)
+                        self.logger.info(log_msg)
                     except ImportError:
                         self.logger.error('Replicating key presses requires root privileges in Linux. Re-run this script as root to get those working')
                 if self.button_down_pressed != self.last_button_down_pressed:
-                    self.logger.info(f"Minus button {'PRESSED' if self.button_down_pressed else 'RELEASED'}")
                     # send minus key when button is released
                     try:
-                        if not self.button_down_pressed: keyboard.press_and_release('num minus')
+                        log_msg = f"Minus button {'PRESSED' if self.button_down_pressed else 'RELEASED'}"
+                        if not self.button_down_pressed:
+                            log_msg += f"; sending '{MINUS_KEY}'"
+                            keyboard.press_and_release(MINUS_KEY)
+                        self.logger.info(log_msg)
                     except ImportError:
                         self.logger.error('Replicating key presses requires root privileges in Linux. Re-run this script as root to get those working')
         
@@ -288,6 +294,16 @@ args = parser.parse_args()
 
 MAC = args.mac_address
 ENCRYPTION = os.environ.get('USE_ENCRYPTION', str(False)).lower() == 'true'
+
+# Configure key bindings from environment variables with fallback defaults
+# You can set CLICK_PLUS_KEY and CLICK_MINUS_KEY environment variables to change
+# which keyboard keys are sent when the Click buttons are pressed
+PLUS_KEY = os.environ.get('CLICK_PLUS_KEY', 'num plus')
+MINUS_KEY = os.environ.get('CLICK_MINUS_KEY', 'num minus')
+
+# Log the key configuration at startup
+_logger.info(f"Configured Plus button to send key: '{PLUS_KEY}'")
+_logger.info(f"Configured Minus button to send key: '{MINUS_KEY}'")
 
 click = ClickBLE(MAC, encrypted=ENCRYPTION, verbose=args.v)
 
