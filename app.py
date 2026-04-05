@@ -110,11 +110,40 @@ class ClickBLE:
             self.logger.debug(f"tag_bytes: {tag_bytes}")
             response = self.decrypt(counter_bytes, payload_bytes, tag_bytes) 
         else:
+            # print(f"{data=}, {data[2]=}, {data[3]=}")
+            
+            match data[2]:
+                case 191:
+                    print("Y")
+                    keyboard.press_and_release("d")
+                case 223:
+                    print("B")
+                    keyboard.press_and_release("i")
+                case 239:
+                    print("A")
+                    keyboard.press_and_release("k")
+                    
+            match data[3]:
+                case 223:
+                    print("+")
+                case 254:
+                    print("Z")
+                    keyboard.press_and_release("a")
+                    
+                   
+            
+            # return
+            
             type = bytes(data[:1])
             payload = bytes(data[1:])
             pb_tuple = bbpb.protobuf_to_json(payload)
             data_dict = json.loads(pb_tuple[0])
-            self.logger.debug(f'Message type is "{const.types[type]}"')
+            
+            # print(f"{type=} {payload=}")
+            
+            
+            # return
+            # self.logger.debug(f'Message type is "{const.types[type]}"')
             self.logger.debug(f'Message data is {data_dict}')
             if type == const.BATTERY_LEVEL_TYPE:
                 self.logger.info(f'Current battery level is {data_dict['2']}')
@@ -172,6 +201,7 @@ class ClickBLE:
         # this is not working... not sure if the issue is in the key generation or the
         # actual deccryption part, but it turns out we don't really need the encryption for our
         # purposes anyway
+        
         raise NotImplementedError("This implementation isn't working yet (or maybe ever...)")
         nonce_bytes = self.iv_bytes + counter_bytes
         aesccm = AESCCM(self.shared_key_bytes, tag_length=4)
@@ -258,8 +288,8 @@ class ClickBLE:
             await client.start_notify(char.ZWIFT_ASYNC_CHARACTERISTIC_UUID, self.async_notification_handler)
             self.logger.debug('Subscribing to ZWIFT_SYNC_TX_CHARACTERISTIC_UUID')
             await client.start_notify(char.ZWIFT_SYNC_TX_CHARACTERISTIC_UUID, self.process_characteristic)
-            self.logger.debug('Subscribing to ZWIFT_UNKNOWN_6_CHARACTERISTIC_UUID')
-            await client.start_notify(char.ZWIFT_UNKNOWN_6_CHARACTERISTIC_UUID, self.notification_handler)
+            # self.logger.debug('Subscribing to ZWIFT_UNKNOWN_6_CHARACTERISTIC_UUID')
+            # await client.start_notify(char.ZWIFT_UNKNOWN_6_CHARACTERISTIC_UUID, self.notification_handler)
             self.logger.debug('Subscribing to BATTERY_LEVEL_CHARACTERISTIC_UUID')
             await client.start_notify(char.BATTERY_LEVEL_CHARACTERISTIC_UUID, self.battery_notification_handler)
             
@@ -276,6 +306,10 @@ class ClickBLE:
                 response=True
             )
             self.logger.info(f"Finished handshake; waiting for input (press `Ctrl-C` to exit)")
+            
+            # paired = await client.pair(protection_level=2)
+            # print(f"Paired: {paired}")
+            
             while True:
                 await asyncio.sleep(1)
 
@@ -293,7 +327,9 @@ parser.add_argument(
 args = parser.parse_args()
 
 MAC = args.mac_address
-ENCRYPTION = os.environ.get('USE_ENCRYPTION', str(False)).lower() == 'true'
+# ENCRYPTION = os.environ.get('USE_ENCRYPTION', str(False)).lower() == 'true'
+# MAC = "D4:FE:EB:93:6B:AD" #args.mac_address
+ENCRYPTION = False #os.environ.get('USE_ENCRYPTION', str(False)).lower() == 'true'
 
 # Configure key bindings from environment variables with fallback defaults
 # You can set CLICK_PLUS_KEY and CLICK_MINUS_KEY environment variables to change

@@ -51,6 +51,26 @@ before running random scripts as `root`.
 
 ## Running the code
 
+### Install requirements
+
+#### Windows
+
+**py installer (dl web)**
+py list
+py install 3.12
+
+py -m pip install --upgrade pip
+py -m pip install poetry
+
+** git clone**
+** cd [projet]**
+py -m poetry install
+py -m poetry run python app.py
+
+#### Linux
+
+### Launch the project
+
 1. Clone the repository, and make sure [poetry](https://python-poetry.org) is installed
 2. From the code directory, run `poetry install --no-root`
    - Note, when installing on Windows, it may be required to enable long paths (it was for me). To do this, open `regedit` and set `Computer\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem\LongPathsEnabled` to `1`
@@ -70,6 +90,7 @@ before running random scripts as `root`.
 
 - There's also a file provided named `run.bat` that will run the script. I created a shortcut to that on my desktop,
   and I run that to connect the Click before I start up indieVelo, and it all seems to work as expected
+
 
 ### Demo video
 
