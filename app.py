@@ -110,7 +110,7 @@ class ClickBLE:
             self.logger.debug(f"tag_bytes: {tag_bytes}")
             response = self.decrypt(counter_bytes, payload_bytes, tag_bytes) 
         else:
-            # print(f"{data=}, {data[2]=}, {data[3]=}")
+            print(f"{data=}, {data[0]=}, {data[1]=}, {data[2]=}, {data[3]=}")
             
             match data[2]:
                 case 191:
